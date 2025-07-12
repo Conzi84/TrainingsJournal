@@ -537,3 +537,230 @@ const TrainingsJournal = () => {
                                   type="text"
                                   value={editName}
                                   onChange={(e) => setEditName(e.target.value)}
+                                  className="neo-input w-full"
+                                />
+                                <select 
+                                  value={editCategory}
+                                  onChange={(e) => setEditCategory(e.target.value)}
+                                  className="neo-input w-full"
+                                >
+                                  {categories.map(cat => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                  ))}
+                                </select>
+                                <textarea
+                                  value={editContent}
+                                  onChange={(e) => setEditContent(e.target.value)}
+                                  className="neo-textarea w-full"
+                                  rows={4}
+                                />
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={saveEditTraining}
+                                    className="neo-btn neo-btn-success neo-btn-sm"
+                                  >
+                                    SPEICHERN ✓
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingTraining(null)}
+                                    className="neo-btn neo-btn-warning neo-btn-sm"
+                                  >
+                                    ABBRECHEN
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="flex justify-between items-start" style={{ marginBottom: '8px' }}>
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="font-black text-lg">{training.name}</h4>
+                                    <button
+                                      onClick={() => toggleFavorite(training.id)}
+                                      className={`text-2xl ${training.isFavorite ? 'text-yellow-500' : 'text-gray-400'}`}
+                                      title={training.isFavorite ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
+                                    >
+                                      {training.isFavorite ? '⭐' : '☆'}
+                                    </button>
+                                  </div>
+                                  <div className="flex flex-wrap gap-1">
+                                    <button
+                                      onClick={() => startTraining(training)}
+                                      className="neo-btn neo-btn-primary neo-btn-sm"
+                                    >
+                                      START
+                                    </button>
+                                    <button
+                                      onClick={() => startEditTraining(training)}
+                                      className="neo-btn neo-btn-info neo-btn-sm"
+                                    >
+                                      EDIT
+                                    </button>
+                                    <button
+                                      onClick={() => deleteTraining(training.id)}
+                                      className="neo-btn neo-btn-danger neo-btn-sm"
+                                    >
+                                      DEL
+                                    </button>
+                                  </div>
+                                </div>
+                                <pre className="font-bold text-sm whitespace-pre-wrap">
+                                  {training.content}
+                                </pre>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {currentView === 'current' && (
+          <div className="space-y-6">
+            {!currentTraining ? (
+              <div className="neo-card bg-neo-red" style={{ padding: '24px' }}>
+                <h2 className="heading-2">KEIN AKTIVES TRAINING</h2>
+                <p className="font-bold">Wähle ein Training aus der Bibliothek!</p>
+              </div>
+            ) : (
+              <div className="neo-card bg-neo-orange" style={{ padding: '24px' }}>
+                <h2 className="heading-2" style={{ marginBottom: '16px' }}>AKTUELLES TRAINING</h2>
+                <h3 className="heading-3 text-neo-purple" style={{ marginBottom: '16px' }}>{currentTraining.name}</h3>
+                
+                <div className="neo-card-white" style={{ padding: '16px', marginBottom: '16px' }}>
+                  <pre className="font-bold whitespace-pre-wrap">
+                    {currentTraining.content}
+                  </pre>
+                </div>
+                
+                <div className="space-y-4">
+                  <textarea
+                    value={currentNotes}
+                    onChange={(e) => setCurrentNotes(e.target.value)}
+                    placeholder="Notizen zu diesem Training..."
+                    className="neo-textarea w-full"
+                    rows={3}
+                  />
+                  
+                  <button 
+                    onClick={completeTraining}
+                    className="neo-btn neo-btn-success w-full"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'SPEICHERE...' : 'TRAINING ABSCHLIESSEN ✓'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {currentView === 'history' && (
+          <div className="space-y-6">
+            <div className="neo-card bg-neo-blue" style={{ padding: '24px' }}>
+              <h2 className="heading-2" style={{ marginBottom: '16px' }}>
+                TRAININGS HISTORIE ({trainingHistory.length})
+              </h2>
+              
+              {trainingHistory.length === 0 ? (
+                <p className="font-bold">Noch keine abgeschlossenen Trainings!</p>
+              ) : (
+                <div className="space-y-4">
+                  {trainingHistory.map(entry => {
+                    const entryDate = new Date(entry.completedAt);
+                    const isToday = entryDate.toDateString() === new Date().toDateString();
+                    const isThisWeek = (new Date().getTime() - entryDate.getTime()) < (7 * 24 * 60 * 60 * 1000);
+                    
+                    return (
+                      <div key={entry.id} className="neo-card-white" style={{ padding: '16px' }}>
+                        <div className="flex justify-between items-start" style={{ marginBottom: '8px' }}>
+                          <h4 className="font-black text-lg">{entry.trainingName}</h4>
+                          <div className="flex gap-2">
+                            <span className={`neo-badge ${isToday ? 'bg-neo-lime' : isThisWeek ? 'bg-neo-yellow' : 'bg-neo-gray'}`}>
+                              {isToday ? 'HEUTE' : entryDate.toLocaleDateString('de-DE')}
+                            </span>
+                            <span className="neo-badge bg-neo-blue">
+                              {entryDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        </div>
+                        {entry.notes && (
+                          <div className="bg-neo-gray neo-border" style={{ padding: '12px', marginTop: '8px' }}>
+                            <p className="font-bold text-sm">
+                              💭 {entry.notes}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            
+            {trainingHistory.length > 0 && (
+              <div className="neo-card bg-neo-yellow" style={{ padding: '24px' }}>
+                <h3 className="heading-3" style={{ marginBottom: '16px' }}>STATISTIKEN</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-black">{trainingHistory.length}</div>
+                    <div className="font-bold text-sm">GESAMT</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-black">
+                      {trainingHistory.filter(h => {
+                        const date = new Date(h.completedAt);
+                        return date.toDateString() === new Date().toDateString();
+                      }).length}
+                    </div>
+                    <div className="font-bold text-sm">HEUTE</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-black">
+                      {trainingHistory.filter(h => {
+                        const date = new Date(h.completedAt);
+                        const weekAgo = new Date();
+                        weekAgo.setDate(weekAgo.getDate() - 7);
+                        return date > weekAgo;
+                      }).length}
+                    </div>
+                    <div className="font-bold text-sm">7 TAGE</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-black">
+                      {Math.round(trainingHistory.length / Math.max(1, Math.ceil((new Date().getTime() - new Date(trainingHistory[trainingHistory.length - 1]?.completedAt || new Date()).getTime()) / (1000 * 60 * 60 * 24 * 7))))}
+                    </div>
+                    <div className="font-bold text-sm">⌀ PRO WOCHE</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      {notification && (
+        <div className="fixed bottom-4 right-4 bg-neo-lime neo-border neo-shadow animate-bounce z-50" style={{ padding: '16px' }}>
+          <p className="font-black text-sm">{notification}</p>
+        </div>
+      )}
+
+      <footer className="bg-neo-gray neo-border-t" style={{ padding: '16px' }}>
+        <div className="neo-container text-center">
+          <div className="flex flex-wrap justify-center gap-4 text-sm">
+            <span className="font-bold">📊 {trainings.length} Trainings</span>
+            <span className="font-bold">🏃‍♂️ {trainingHistory.length} absolviert</span>
+            <span className="font-bold">⭐ {trainings.filter(t => t.isFavorite).length} Favoriten</span>
+            <span className="font-bold">💪 {categories.length} Kategorien</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default TrainingsJournal;
