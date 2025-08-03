@@ -40,3 +40,6 @@ npm run dev
 
 # Production Build
 npm run build
+
+
+Update 03/08/2025 Standalone - fullscreen modus
